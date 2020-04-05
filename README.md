@@ -41,7 +41,7 @@ enabled annotation processor
 You can run cli-app and migrate files by command below, where fromStorage and toStorage are URIs 
 
 ```
-java -jar jar-from=<fromStorage> -to=<toStorage>
+java -jar jarname.jar -from=<fromStorage> -to=<toStorage>
 ```
 
 For example, you can just do this under terminal 
