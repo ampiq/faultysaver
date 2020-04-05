@@ -24,7 +24,7 @@ So the next improvement is:
 ```
 Asynchroniously download files,
                 upload files which are ready asynchroniously,
-                delete files which are ready from old storage synchroniously 
+                delete files which are ready from old storage asynchroniously 
 ```   
 
 This application uses last way. Note that we have to release connections and give them back to the connection pool so we do all the work by batches. 
@@ -32,6 +32,7 @@ This application uses last way. Note that we have to release connections and giv
 
 ```
 Java 8+
+maven 3.5+
 ```
 
 ### Usage
@@ -42,10 +43,12 @@ You can run cli-app and migrate files by command below
 java -jar <jar-name> <url-from> <url-to>
 ```
 
-For example, you can just copy this
+For example, you can just do this under terminal 
 
 ```
-java -jar faultysaver.jar http://localhost:8080/oldStorage/files http://localhost:8080//newStorage/files
+cd target
+
+java -jar FaultySaver-1.0-SNAPSHOT-jar-with-dependencies.jar http://localhost:8080/oldStorage/files http://localhost:8080//newStorage/files
 ```
 
 Note that application is sending huge amount of requests so you have to wait about ~100 sec. for migrating ~5000 files(considering that server may hang and be unstable).

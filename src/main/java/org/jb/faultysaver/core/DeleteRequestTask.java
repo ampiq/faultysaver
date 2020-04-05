@@ -29,7 +29,7 @@ public class DeleteRequestTask extends AbstractRequestTask{
                         .delete(getUri())
                         .build();
                 deleteResponse = executeRequestWithAttempts(deleteRequest, MAX_ATTEMPTS_NUMBER);
-                System.out.println("With code " + deleteResponse.getStatusLine().getStatusCode() + " !!!!!!!!!!!!!from deleteRequest!!!!!!!!!! ");
+                System.out.println("With code " + deleteResponse.getStatusLine().getStatusCode() + " from delete request");
                 return deleteResponse;
             }
         } catch (Exception ex) {
@@ -38,28 +38,3 @@ public class DeleteRequestTask extends AbstractRequestTask{
         return deleteResponse;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

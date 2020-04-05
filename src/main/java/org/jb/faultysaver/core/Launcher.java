@@ -15,10 +15,10 @@ public class Launcher {
 
     public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException {
 
-        URI uriFrom = new URI(args[0]);
-        URI uriTo = new URI(args[1]);
-//        URI uriFrom = new URI(OLD_STORAGE_URL);
-//        URI uriTo = new URI(NEW_STORAGE_URL);
+//        URI uriFrom = new URI(args[0]);
+//        URI uriTo = new URI(args[1]);
+        URI uriFrom = new URI(OLD_STORAGE_URL);
+        URI uriTo = new URI(NEW_STORAGE_URL);
         CloseableHttpClient client = createClient();
         FaultySaver faultySaver = new FaultySaver(client, uriFrom, uriTo);
         faultySaver.migrateFiles();

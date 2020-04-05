@@ -41,7 +41,7 @@ public class UploadRequestTask extends AbstractRequestTask{
                 byte[] uploadBytes = IOUtils.toByteArray(contentStream);
                 HttpPost uploadRequest = new HttpPost(getUri());
                 uploadResponse = executeRequestWithAttempts(uploadRequest, uploadBytes, MAX_ATTEMPTS_NUMBER);
-                System.out.println("With code " + uploadResponse.getStatusLine().getStatusCode() + " _________from uploadRequest_________ ");
+                System.out.println("With code " + uploadResponse.getStatusLine().getStatusCode() + " from upload request");
                 EntityUtils.consume(uploadResponse.getEntity());
                 return uploadResponse;
             }

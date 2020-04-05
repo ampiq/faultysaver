@@ -29,7 +29,7 @@ public class GetFilesRequestTask extends AbstractRequestTask{
                     .setHeader(HttpHeaders.CONTENT_TYPE, JSON_TYPE)
                     .build();
             getFilesResponse = executeRequestWithAttempts(getFilesRequest, MAX_ATTEMPTS_NUMBER);
-            System.out.println("With code " + getFilesResponse.getStatusLine().getStatusCode() + " from GetFilesRequest ");
+            System.out.println("With code " + getFilesResponse.getStatusLine().getStatusCode() + " from get files request");
             return getFilesResponse;
         } catch (Exception ex) {
             LOGGER.error("Getting list of files from {} was aborted ", getUri());

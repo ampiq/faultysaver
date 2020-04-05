@@ -51,7 +51,6 @@ public class FaultySaver {
         //--------------------------
         long start = System.nanoTime();
         //--------------------------
-        int count = 0; //TODO
         for (int i = 0; i < filesFromOldStorage.size(); ) {
             while (tasks.size() < BATCH_SIZE) {
                 String fileName = filesFromOldStorage.get(i++);
@@ -68,7 +67,6 @@ public class FaultySaver {
                                                            new DeleteRequestTask(client, fileFromUri, result).execute(), deleteExecutor));
                 tasks.add(downloadToUploadToDeleteFuture);
             }
-            System.out.println("!!!!!!!!!!!!!!_______________________STAGE_______________________________________________________________!!!!!!!!!!!!!!! " + ++count);
             removeTasksOnComplete(tasks);
         }
         long end = System.nanoTime();
@@ -89,7 +87,7 @@ public class FaultySaver {
         }
     }
 
-    private List<String> getListOfFiles() throws IOException, URISyntaxException {
+    private List<String> getListOfFiles() throws IOException {
         Gson gson = new Gson();
         AbstractRequestTask getFilesTask = new GetFilesRequestTask(client, uriFrom);
         HttpResponse getFilesResponse = getFilesTask.execute();
@@ -107,8 +105,7 @@ public class FaultySaver {
     }
 
     private String extractJsonRepresentation(InputStream is) {
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(is));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
         String line;
 

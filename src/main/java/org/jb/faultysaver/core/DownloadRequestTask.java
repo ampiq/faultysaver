@@ -29,7 +29,7 @@ public class DownloadRequestTask extends AbstractRequestTask{
                     .setHeader(HttpHeaders.CONTENT_TYPE, OCTET_STREAM_TYPE)
                     .build();
             downloadResponse = executeRequestWithAttempts(downloadRequest, MAX_ATTEMPTS_NUMBER);
-            System.out.println("With code " + downloadResponse.getStatusLine().getStatusCode() + " from downloadRequest ");
+            System.out.println("With code " + downloadResponse.getStatusLine().getStatusCode() + " from download request");
             return downloadResponse;
         } catch (Exception ex) {
             LOGGER.error("Download request for {} was aborted ", getUri());
