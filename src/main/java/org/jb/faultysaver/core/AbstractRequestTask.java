@@ -20,6 +20,14 @@ public abstract class AbstractRequestTask {
 
     public abstract HttpResponse execute();
 
+    public URI getUri() {
+        return uri;
+    }
+
+    public CloseableHttpClient getClient() {
+        return client;
+    }
+
     protected HttpResponse executeRequestWithAttempts(HttpUriRequest request, int attemptsNumber) throws IOException {
         HttpResponse response;
         int currentAttempt = 0;
@@ -45,13 +53,5 @@ public abstract class AbstractRequestTask {
             successful = true;
         }
         return successful;
-    }
-
-    public URI getUri() {
-        return uri;
-    }
-
-    public CloseableHttpClient getClient() {
-        return client;
     }
 }

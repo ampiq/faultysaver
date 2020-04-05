@@ -37,10 +37,10 @@ maven 3.5+
 
 ### Usage
 
-You can run cli-app and migrate files by command below
+You can run cli-app and migrate files by command below, where fromStorage and toStorage are URIs 
 
 ```
-java -jar <jar-name> <url-from> <url-to>
+java -jar -from=<fromStorage> -to=<toStorage>
 ```
 
 For example, you can just do this under terminal 
@@ -48,7 +48,7 @@ For example, you can just do this under terminal
 ```
 cd target
 
-java -jar FaultySaver-1.0-SNAPSHOT-jar-with-dependencies.jar http://localhost:8080/oldStorage/files http://localhost:8080//newStorage/files
+java -jar FaultySaver-1.0-SNAPSHOT-jar-with-dependencies.jar -from=http://localhost:8080/oldStorage/files -to=http://localhost:8080//newStorage/files
 ```
 
 Note that application is sending huge amount of requests so you have to wait about ~100 sec. for migrating ~5000 files(considering that server may hang and be unstable).

@@ -3,35 +3,41 @@ package org.jb.faultysaver.core;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import picocli.CommandLine;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.Callable;
 
-public class Launcher {
+public class Launcher implements Runnable {
 
-    public static final String OLD_STORAGE_URL = "http://localhost:8080/oldStorage/files";
-    public static final String NEW_STORAGE_URL = "http://localhost:8080/newStorage/files";
+    private static final Logger LOGGER = LogManager.getLogger(DeleteRequestTask.class.getName());
 
-    public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException {
+    @CommandLine.Option(names={"-from"}, description="Where files migrate from", required=true)
+    URI fromStorage;
 
-//        URI uriFrom = new URI(args[0]);
-//        URI uriTo = new URI(args[1]);
-        URI uriFrom = new URI(OLD_STORAGE_URL);
-        URI uriTo = new URI(NEW_STORAGE_URL);
-        CloseableHttpClient client = createClient();
-        FaultySaver faultySaver = new FaultySaver(client, uriFrom, uriTo);
-        faultySaver.migrateFiles();
-        System.out.println("Done!");
+    @CommandLine.Option(names={"-to"}, description="Where files migrate to", required=true)
+    URI toStorage;
+
+    public static void main(String[] args) {
+        int exitCode = new CommandLine(new Launcher()).execute(args);
     }
 
-    public static CloseableHttpClient createClient() {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(1000);
-        cm.setDefaultMaxPerRoute(1000);
-        return HttpClientBuilder
-                .create()
-                .setConnectionManager(cm)
-                .build();
+    @Override
+    public void run(){
+        try (CloseableHttpClient client = ClientFactory.createMultithreadedClientWithFixedPool()){
+            FaultySaver faultySaver = new FaultySaver(client, fromStorage, toStorage);
+            faultySaver.migrateFiles();
+            System.out.println("Done!");
+        } catch (InterruptedException ex) {
+            LOGGER.error("Interrupted");
+        } catch (URISyntaxException ex) {
+            LOGGER.error("Wrong URI");
+        } catch (IOException ex) {
+            LOGGER.error("Resource unavailable");
+        }
     }
 }

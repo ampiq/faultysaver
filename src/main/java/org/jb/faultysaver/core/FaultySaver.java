@@ -48,9 +48,6 @@ public class FaultySaver {
         List<String> filesFromOldStorage = getListOfFiles();
         List<CompletableFuture<HttpResponse>> tasks = new ArrayList<>();
 
-        //--------------------------
-        long start = System.nanoTime();
-        //--------------------------
         for (int i = 0; i < filesFromOldStorage.size(); ) {
             while (tasks.size() < BATCH_SIZE) {
                 String fileName = filesFromOldStorage.get(i++);
@@ -69,10 +66,7 @@ public class FaultySaver {
             }
             removeTasksOnComplete(tasks);
         }
-        long end = System.nanoTime();
-        long seconds = (end - start) / 1000_000_000;
-        System.out.println("Result: " + seconds + " sec.");
-        //--------------------------
+
         downloadExecutor.shutdown();
         uploadExecutor.shutdown();
         deleteExecutor.shutdown();
