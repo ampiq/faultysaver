@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URI;
 
-public class DeleteRequestTask extends AbstractRequestTask{
+public class DeleteRequestTask extends AbstractRequestTask {
 
     private static final Logger LOGGER = LogManager.getLogger(DeleteRequestTask.class.getName());
     private static final int MAX_ATTEMPTS_NUMBER = 20;

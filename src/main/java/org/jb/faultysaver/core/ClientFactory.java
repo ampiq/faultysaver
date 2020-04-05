@@ -12,9 +12,8 @@ public class ClientFactory {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(MAX_POOL_SIZE);
         cm.setDefaultMaxPerRoute(MAX_POOL_SIZE);
-        return HttpClientBuilder
-                .create()
-                .setConnectionManager(cm)
-                .build();
+        return HttpClientBuilder.create()
+                                .setConnectionManager(cm)
+                                .build();
     }
 }

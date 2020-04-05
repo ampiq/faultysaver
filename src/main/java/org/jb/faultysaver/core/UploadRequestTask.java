@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-public class UploadRequestTask extends AbstractRequestTask{
+public class UploadRequestTask extends AbstractRequestTask {
 
     private static final Logger LOGGER = LogManager.getLogger(UploadRequestTask.class.getName());
     private static final int MAX_ATTEMPTS_NUMBER = 20;
@@ -31,7 +31,7 @@ public class UploadRequestTask extends AbstractRequestTask{
         this.previousResponse = previousResponse;
     }
 
-    public HttpResponse execute(){
+    public HttpResponse execute() {
         HttpResponse uploadResponse = null;
         InputStream contentStream = null;
         try {
@@ -59,7 +59,7 @@ public class UploadRequestTask extends AbstractRequestTask{
         return uploadResponse;
     }
 
-    protected HttpResponse executeRequestWithAttempts(HttpPost request,byte[] uploadBytes, int attemptsNumber) throws IOException {
+    protected HttpResponse executeRequestWithAttempts(HttpPost request, byte[] uploadBytes, int attemptsNumber) throws IOException {
         HttpResponse response;
         int currentAttempt = 0;
         do {

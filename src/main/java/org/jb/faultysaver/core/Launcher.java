@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 
 public class Launcher implements Runnable {
 
-    private static final Logger LOGGER = LogManager.getLogger(DeleteRequestTask.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(Launcher.class.getName());
 
     @CommandLine.Option(names={"-from"}, description="Where files migrate from", required=true)
     URI fromStorage;

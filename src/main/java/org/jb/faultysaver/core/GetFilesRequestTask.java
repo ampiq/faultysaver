@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URI;
 
-public class GetFilesRequestTask extends AbstractRequestTask{
+public class GetFilesRequestTask extends AbstractRequestTask {
 
     private static final Logger LOGGER = LogManager.getLogger(GetFilesRequestTask.class.getName());
     private static final int MAX_ATTEMPTS_NUMBER = 20;
