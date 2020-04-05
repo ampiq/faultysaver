@@ -33,6 +33,7 @@ This application uses last way. Note that we have to release connections and giv
 ```
 Java 8+
 maven 3.5+
+enabled annotation processor
 ```
 
 ### Usage
