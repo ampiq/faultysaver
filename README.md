@@ -75,6 +75,10 @@ To skip tests use
 mvn -Dmaven.test.skip=true package
 ```
 
+## Release
+
+https://github.com/ampiq/faultysaver/releases/tag/1.0
+
 ## Meta
 
 David Guyo 
