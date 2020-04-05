@@ -1,0 +1,22 @@
+<Configuration status="WARN">
+    <Appenders>
+
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+    </Appenders>
+    <Loggers>
+
+        <!-- asynchronous loggers -->
+        <AsyncLogger name="org.jb.faultysaver.core" level="warn" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </AsyncLogger>
+
+        <!-- synchronous loggers -->
+        <Root level="warn">
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+
+    </Loggers>
+</Configuration>
