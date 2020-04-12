@@ -2,10 +2,12 @@ package org.jb.faultysaver.core;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.vdurmont.etaprinter.ETAPrinter;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,7 +19,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -45,45 +49,106 @@ public class FaultySaver {
     }
 
     public void migrateFiles() throws IOException, URISyntaxException, InterruptedException {
-        List<String> filesFromOldStorage = getListOfFiles();
-        List<CompletableFuture<HttpResponse>> tasks = new ArrayList<>();
+        try {
+            List<CompletableFuture<HttpResponse>> tasks = new ArrayList<>();
+            List<String> filesFromOldStorage = getFiles(uriFrom);
+            List<String> filesFromNewStorage = getFiles(uriTo);
+            ETAPrinter printer = ETAPrinter.init("files", filesFromOldStorage.size());
 
-        for (int i = 0; i < filesFromOldStorage.size(); ) {
-            while (tasks.size() < BATCH_SIZE) {
-                String fileName = filesFromOldStorage.get(i++);
-                String fullPathToFile = uriFrom.toURL() + URI_SEPARATOR + fileName;
-                URI fileFromUri = new URI(fullPathToFile);
+            for (int i = 0; i < filesFromOldStorage.size(); ) {
+                while (tasks.size() < BATCH_SIZE) {
+                    String fileName = filesFromOldStorage.get(i++);
+                    String fullPathToFile = uriFrom.toURL() + URI_SEPARATOR + fileName;
+                    URI fileFromUri = new URI(fullPathToFile);
 
-                CompletableFuture<HttpResponse> downloadToUploadToDeleteFuture
-                        = CompletableFuture.supplyAsync(() -> new DownloadRequestTask(client, fileFromUri).execute(), downloadExecutor)
-                                           .thenComposeAsync(result ->
-                                                   CompletableFuture.supplyAsync(() ->
-                                                           new UploadRequestTask(client, uriTo, fileName, result).execute(), uploadExecutor))
-                                           .thenComposeAsync(result ->
-                                                   CompletableFuture.supplyAsync(() ->
-                                                           new DeleteRequestTask(client, fileFromUri, result).execute(), deleteExecutor));
-                tasks.add(downloadToUploadToDeleteFuture);
+                    if (!filesFromNewStorage.contains(fileName)) {
+                        CompletableFuture<HttpResponse> downloadToUploadToDeleteFuture
+                                = downloadAsync(fileFromUri).thenComposeAsync(result -> uploadAsync(uriTo, fileName, result))
+                                                            .thenComposeAsync(result -> {
+                                                                if (isSuccessful(result)) {
+                                                                    return deleteAsync(fileFromUri);
+                                                                }
+                                                                return null;
+                                                            });
+                        tasks.add(downloadToUploadToDeleteFuture);
+                    } else {
+                        CompletableFuture<HttpResponse> deleteFuture = deleteAsync(fileFromUri);
+                        tasks.add(deleteFuture);
+                    }
+                }
+                removeTasksOnComplete(tasks);
+                printer.update(BATCH_SIZE);
             }
-            removeTasksOnComplete(tasks);
+        } catch (RuntimeException ex) {
+            LOGGER.error("Migration was stopped, request was aborted: {}", ex.getMessage());
+        } finally {
+            downloadExecutor.shutdownNow();
+            uploadExecutor.shutdownNow();
+            deleteExecutor.shutdownNow();
         }
+    }
 
-        downloadExecutor.shutdown();
-        uploadExecutor.shutdown();
-        deleteExecutor.shutdown();
+    private CompletableFuture<HttpResponse> downloadAsync(URI uri) {
+        return CompletableFuture.supplyAsync(() -> new DownloadRequestTask(client, uri).execute(), downloadExecutor);
+    }
+
+    private CompletableFuture<HttpResponse> uploadAsync(URI uri, String fileName, HttpResponse previousResponse) {
+        return CompletableFuture.supplyAsync(() ->
+                new UploadRequestTask(client, uri, fileName, previousResponse).execute(), uploadExecutor);
+    }
+
+    private CompletableFuture<HttpResponse> deleteAsync(URI uri) {
+        return CompletableFuture.supplyAsync(() ->
+                new DeleteRequestTask(client, uri).execute(), deleteExecutor);
     }
 
     private void removeTasksOnComplete(List<CompletableFuture<HttpResponse>> tasks) throws InterruptedException {
         while (!tasks.isEmpty()) {
-            tasks.removeIf(CompletableFuture::isDone);
+            for(ListIterator<CompletableFuture<HttpResponse>> it = tasks.listIterator(); it.hasNext(); ) {
+                CompletableFuture<HttpResponse> task = it.next();
+                if(task.isDone()) {
+                    throwIfExceptionOccurred(task);
+                    it.remove();
+                }
+            }
             if(!tasks.isEmpty()) {
                 Thread.sleep(100); //java 9  -> onSpinWait
             }
         }
     }
 
-    private List<String> getListOfFiles() throws IOException {
+    private void throwIfExceptionOccurred(CompletableFuture<HttpResponse> task) {
+        if (task.isCompletedExceptionally()) {
+            try {
+                task.join();
+            } catch (CompletionException ex) {
+                if (ex.getCause() instanceof NoConnectionException) {
+                    URI hostURI = ((NoConnectionException) ex.getCause()).getHostURI();
+                    throw new NoConnectionException(hostURI, ex);
+                } else {
+                    throw new RuntimeException(ex.getMessage(), ex.getCause());
+                }
+            }
+        }
+    }
+
+    private boolean isSuccessful(HttpResponse response) {
+        boolean successful = false;
+        if (response == null) {
+            return successful;
+        }
+        int statusCode = response.getStatusLine()
+                                 .getStatusCode();
+
+        if (statusCode == 200 || statusCode == 409) {
+            successful = true;
+        }
+        return successful;
+    }
+
+    private List<String> getFiles(URI fromUri) throws IOException {
         Gson gson = new Gson();
-        AbstractRequestTask getFilesTask = new GetFilesRequestTask(client, uriFrom);
+        AbstractRequestTask getFilesTask = new GetFilesRequestTask(client, fromUri);
         HttpResponse getFilesResponse = getFilesTask.execute();
         if (getFilesResponse == null) {
             return Collections.emptyList();
