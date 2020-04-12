@@ -77,7 +77,9 @@ mvn -Dmaven.test.skip=true package
 
 ## Release
 
-https://github.com/ampiq/faultysaver/releases/tag/1.0
+https://github.com/ampiq/faultysaver/releases/tag/1.0 05.04.2020
+
+https://github.com/ampiq/faultysaver/releases/tag/2.0 12.04.2020
 
 ## Meta
 
