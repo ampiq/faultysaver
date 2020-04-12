@@ -6,15 +6,18 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -31,17 +34,20 @@ class GetFilesRequestTaskTest {
     }
 
     @Test
-    public void shouldReturn_nullResponse_if_apiDoNotRespond() throws IOException {
+    public void shouldThrowNoConnectionException_if_apiDoNotRespond() throws IOException {
         //given:
         CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
         //and:
-        when(httpClient.execute(any())).thenThrow(IOException.class);
+        when(httpClient.execute(any())).thenThrow(SocketException.class);
         //and:
-        GetFilesRequestTask downloadRequestTask = new GetFilesRequestTask(httpClient, uri);
+        GetFilesRequestTask getFilesRequestTask = new GetFilesRequestTask(httpClient, uri);
         //when:
-        HttpResponse response = downloadRequestTask.execute();
+        Exception exception = assertThrows(NoConnectionException.class, getFilesRequestTask::execute);
         //then:
-        assertNull(response);
+        String expectedMessage = "Server unavailable";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test

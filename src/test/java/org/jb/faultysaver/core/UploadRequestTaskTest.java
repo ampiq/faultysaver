@@ -7,16 +7,24 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class UploadRequestTaskTest {
 
@@ -29,18 +37,27 @@ class UploadRequestTaskTest {
     }
 
     @Test
-    public void shouldReturn_nullResponse_if_apiDoNotRespond() throws IOException {
+    public void shouldThrowNoConnectionException_if_apiDoNotRespond() throws IOException {
         //given:
         CloseableHttpClient httpClient = mock(CloseableHttpClient.class);
         CloseableHttpResponse downloadResponse = mock(CloseableHttpResponse.class);
+        HttpEntity entity = mock(HttpEntity.class);
+        downloadResponse.setEntity(entity);
         //and:
-        when(httpClient.execute(any())).thenThrow(IOException.class);
+        when(httpClient.execute(any())).thenThrow(SocketException.class);
+        when(downloadResponse.getEntity()).thenReturn(entity);
+        when(entity.getContent()).thenReturn(UploadRequestTaskTest.class.getClassLoader().getResourceAsStream("1.txt"));
+        when(downloadResponse.getStatusLine())
+                .thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Ok!"));
         //and:
-        UploadRequestTask UploadRequestTask = new UploadRequestTask(httpClient, uri, fileName, downloadResponse);
+        UploadRequestTask uploadRequestTask = new UploadRequestTask(httpClient, uri, fileName, downloadResponse);
         //when:
-        HttpResponse response = UploadRequestTask.execute();
+        Exception exception = assertThrows(NoConnectionException.class, uploadRequestTask::execute);
         //then:
-        assertNull(response);
+        String expectedMessage = "Server unavailable";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
@@ -51,9 +68,9 @@ class UploadRequestTaskTest {
         //and:
         when(httpClient.execute(any())).thenThrow(IOException.class);
         //and:
-        UploadRequestTask UploadRequestTask = new UploadRequestTask(httpClient, uri, fileName, downloadResponse);
+        UploadRequestTask uploadRequestTask = new UploadRequestTask(httpClient, uri, fileName, downloadResponse);
         //when:
-        HttpResponse response = UploadRequestTask.execute();
+        HttpResponse response = uploadRequestTask.execute();
         //then:
         assertNull(response);
     }
