@@ -4,37 +4,31 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.net.URI;
 
 public class DeleteRequestTask extends AbstractRequestTask {
 
-    private static final Logger LOGGER = LogManager.getLogger(DeleteRequestTask.class.getName());
     private static final int MAX_ATTEMPTS_NUMBER = 20;
 
-    private HttpResponse previousResponse;
-
-    public DeleteRequestTask(CloseableHttpClient client, URI uri, HttpResponse previousResponse) {
+    public DeleteRequestTask(CloseableHttpClient client, URI uri) {
         super(client, uri);
-        this.previousResponse = previousResponse;
     }
 
     public HttpResponse execute() {
-        HttpResponse deleteResponse = null;
         try {
-            if (isSuccessful(previousResponse)) {
-                HttpUriRequest deleteRequest = RequestBuilder
-                        .delete(getUri())
-                        .build();
-                deleteResponse = executeRequestWithAttempts(deleteRequest, MAX_ATTEMPTS_NUMBER);
-                System.out.println("With code " + deleteResponse.getStatusLine().getStatusCode() + " from delete request");
-                return deleteResponse;
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Delete request for {} was aborted ", getUri());
+            HttpUriRequest deleteRequest = RequestBuilder
+                    .delete(getUri())
+                    .build();
+            HttpResponse deleteResponse = executeRequestWithAttempts(deleteRequest, MAX_ATTEMPTS_NUMBER);
+            return deleteResponse;
+        } catch (SocketException ex) {
+            throw new NoConnectionException(getUri(), ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        return deleteResponse;
     }
 }

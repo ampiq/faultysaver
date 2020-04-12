@@ -10,10 +10,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketException;
 import java.net.URI;
 
 public class UploadRequestTask extends AbstractRequestTask {
@@ -41,13 +43,15 @@ public class UploadRequestTask extends AbstractRequestTask {
                 byte[] uploadBytes = IOUtils.toByteArray(contentStream);
                 HttpPost uploadRequest = new HttpPost(getUri());
                 uploadResponse = executeRequestWithAttempts(uploadRequest, uploadBytes, MAX_ATTEMPTS_NUMBER);
-                System.out.println("With code " + uploadResponse.getStatusLine().getStatusCode() + " from upload request");
                 EntityUtils.consume(uploadResponse.getEntity());
                 return uploadResponse;
             }
-        } catch (Exception e) {
-            LOGGER.error("Upload request for {} was aborted ", getUri());
-        } finally {
+        } catch (SocketException ex) {
+            throw new NoConnectionException(getUri(), ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        finally {
             if (contentStream != null) {
                 try {
                     contentStream.close();

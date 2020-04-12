@@ -5,14 +5,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.net.URI;
 
 public class DownloadRequestTask extends AbstractRequestTask {
 
-    private static final Logger LOGGER = LogManager.getLogger(DownloadRequestTask.class.getName());
     private static final int MAX_ATTEMPTS_NUMBER = 20;
     private static final String OCTET_STREAM_TYPE = "application/octet-stream";
 
@@ -21,19 +21,18 @@ public class DownloadRequestTask extends AbstractRequestTask {
     }
 
     public HttpResponse execute() {
-        HttpResponse downloadResponse = null;
         try {
             HttpUriRequest downloadRequest = RequestBuilder
                     .get()
                     .setUri(getUri())
                     .setHeader(HttpHeaders.CONTENT_TYPE, OCTET_STREAM_TYPE)
                     .build();
-            downloadResponse = executeRequestWithAttempts(downloadRequest, MAX_ATTEMPTS_NUMBER);
-            System.out.println("With code " + downloadResponse.getStatusLine().getStatusCode() + " from download request");
+            HttpResponse downloadResponse = executeRequestWithAttempts(downloadRequest, MAX_ATTEMPTS_NUMBER);
             return downloadResponse;
-        } catch (Exception ex) {
-            LOGGER.error("Download request for {} was aborted ", getUri());
+        } catch (SocketException ex) {
+            throw new NoConnectionException(getUri(), ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        return downloadResponse;
     }
 }

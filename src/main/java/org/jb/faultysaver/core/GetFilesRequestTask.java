@@ -5,14 +5,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.jb.faultysaver.core.exceptions.NoConnectionException;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.net.URI;
 
 public class GetFilesRequestTask extends AbstractRequestTask {
 
-    private static final Logger LOGGER = LogManager.getLogger(GetFilesRequestTask.class.getName());
     private static final int MAX_ATTEMPTS_NUMBER = 20;
     private static final String JSON_TYPE = "application/json";
 
@@ -21,19 +21,18 @@ public class GetFilesRequestTask extends AbstractRequestTask {
     }
 
     public HttpResponse execute() {
-        HttpResponse getFilesResponse = null;
         try {
             HttpUriRequest getFilesRequest = RequestBuilder
                     .get()
                     .setUri(getUri())
                     .setHeader(HttpHeaders.CONTENT_TYPE, JSON_TYPE)
                     .build();
-            getFilesResponse = executeRequestWithAttempts(getFilesRequest, MAX_ATTEMPTS_NUMBER);
-            System.out.println("With code " + getFilesResponse.getStatusLine().getStatusCode() + " from get files request");
+            HttpResponse getFilesResponse = executeRequestWithAttempts(getFilesRequest, MAX_ATTEMPTS_NUMBER);
             return getFilesResponse;
-        } catch (Exception ex) {
-            LOGGER.error("Getting list of files from {} was aborted ", getUri());
+        } catch (SocketException ex) {
+            throw new NoConnectionException(getUri(), ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        return getFilesResponse;
     }
 }
