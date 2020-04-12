@@ -56,7 +56,7 @@ public class FaultySaver {
             ETAPrinter printer = ETAPrinter.init("files", filesFromOldStorage.size());
 
             for (int i = 0; i < filesFromOldStorage.size(); ) {
-                while (tasks.size() < BATCH_SIZE) {
+                while (tasks.size() < BATCH_SIZE && i < filesFromOldStorage.size()) {
                     String fileName = filesFromOldStorage.get(i++);
                     String fullPathToFile = uriFrom.toURL() + URI_SEPARATOR + fileName;
                     URI fileFromUri = new URI(fullPathToFile);
