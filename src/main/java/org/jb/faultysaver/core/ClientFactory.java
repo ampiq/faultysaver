@@ -14,6 +14,7 @@ public class ClientFactory {
         cm.setDefaultMaxPerRoute(MAX_POOL_SIZE);
         return HttpClientBuilder.create()
                                 .setConnectionManager(cm)
+                                .disableAutomaticRetries()
                                 .build();
     }
 }
