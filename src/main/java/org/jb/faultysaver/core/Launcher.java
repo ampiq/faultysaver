@@ -20,6 +20,13 @@ public class Launcher implements Runnable {
     URI toStorage;
 
     public static void main(String[] args) {
+        System.out.println("------------------------");
+        System.out.println("------------------------");
+        System.out.println("------------------------");
+        System.out.println("THERE ARE UPDATES!");
+        System.out.println("------------------------");
+        System.out.println("------------------------");
+        System.out.println("------------------------");
         int exitCode = new CommandLine(new Launcher()).execute(args);
     }
 
