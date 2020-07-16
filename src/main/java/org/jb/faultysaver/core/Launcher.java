@@ -21,6 +21,9 @@ public class Launcher implements Runnable {
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new Launcher()).execute(args);
+        System.out.println("--------------------------");
+        System.out.println("OOPS! UPDATES IN MASTER BUT NOT IN DEVELOP! 18:26");
+        System.out.println("--------------------------");
     }
 
     @Override
