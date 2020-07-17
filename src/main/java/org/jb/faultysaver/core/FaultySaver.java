@@ -49,6 +49,7 @@ public class FaultySaver {
     }
 
     public void migrateFiles() throws IOException, URISyntaxException, InterruptedException {
+        System.out.println("");
         try {
             List<CompletableFuture<HttpResponse>> tasks = new ArrayList<>();
             List<String> filesFromOldStorage = getFiles(uriFrom);
